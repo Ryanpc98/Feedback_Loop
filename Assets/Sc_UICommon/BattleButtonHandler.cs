@@ -22,6 +22,8 @@ public class BattleButtonHandler : MonoBehaviour
 
     [SerializeField] private TextMeshProUGUI targetText;
 
+    public GameObject tooptipPanel;
+
     private string[] actorText;
     private string[] enemyText;
 
@@ -215,5 +217,15 @@ public class BattleButtonHandler : MonoBehaviour
             enemyTwoButton.interactable = en[1];
             enemyThreeButton.interactable = en[2];
         }
+    }
+
+    public void OpenTooltip()
+    {
+        tooptipPanel.SetActive(true);
+    }
+
+    public void CloseTooltip()
+    {
+        tooptipPanel.SetActive(false);
     }
 }

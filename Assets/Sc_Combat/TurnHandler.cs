@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
 
@@ -25,8 +26,11 @@ public class TurnHandler : MonoBehaviour
     [SerializeField] private TextMeshProUGUI turnCounterText;
     [SerializeField] private BattleButtonHandler mainUI;
 
-    [SerializeField] private LevelCompleteMenu winScreen;
-    [SerializeField] private LevelFailedMenu loseScreen;
+    [SerializeField] private Sprite z1bg;
+    [SerializeField] private Sprite z2bg;
+    [SerializeField] private Sprite z3bg;
+
+    [SerializeField] private Image bg;
 
     public AudioClip boom;
     public AudioClip clang;
@@ -43,13 +47,13 @@ public class TurnHandler : MonoBehaviour
     public static List<string> adaptations = new List<string>();
 
     //Spawn Points
-    private static Vector3 playerPos1 = new Vector3(-5.2f, 3.5f);
-    private static Vector3 playerPos2 = new Vector3(-3.7f, 1.5f);
-    private static Vector3 playerPos3 = new Vector3(-5.2f, -0.5f);
+    private static Vector3 playerPos1 = new Vector3(-5.2f, 3f, 1);
+    private static Vector3 playerPos2 = new Vector3(-3.7f, 1f, 1);
+    private static Vector3 playerPos3 = new Vector3(-5.2f, -1f, 1);
 
-    private static Vector3 AiPos1 = new Vector3(+5.2f, 3.5f);
-    private static Vector3 AiPos2 = new Vector3(+3.7f, 1.5f);
-    private static Vector3 AiPos3 = new Vector3(+5.2f, -0.5f);
+    private static Vector3 AiPos1 = new Vector3(+5.2f, 3f, 1);
+    private static Vector3 AiPos2 = new Vector3(+3.7f, 1f, 1);
+    private static Vector3 AiPos3 = new Vector3(+5.2f, -1f, 1);
 
     private static Vector3[] playerPosArray = { playerPos1, playerPos2, playerPos3 };
     private static Vector3[] AiPosArray = { AiPos1, AiPos2, AiPos3 };
@@ -191,15 +195,19 @@ public class TurnHandler : MonoBehaviour
         switch (data.d_zone_index)
         {
             case (1):
+                bg.sprite = z1bg;
                 s_aiRoster = ZoneOneNodeMapController.GetEnemyBotArray(data.d_level_name);
                 break;
             case (2):
+                bg.sprite = z2bg;
                 s_aiRoster = ZoneTwoNodeMapController.GetEnemyBotArray(data.d_level_name);
                 break;
             case (3):
+                bg.sprite = z3bg;
                 s_aiRoster = ZoneThreeNodeMapController.GetEnemyBotArray(data.d_level_name);
                 break;
             default:
+                bg.color = new Color(1, 1, 1, 1);
                 s_aiRoster = new List<CharType>() {CharType.Basic, CharType.Basic, CharType.Basic};
                 break;
         }
@@ -400,20 +408,20 @@ public class TurnHandler : MonoBehaviour
             {
                 case 1:
                     data.d_zone_one_ld.level_status_arr[data.d_zone_one_ld.level_index] = 3;
-                    //SceneManager.LoadScene("ZoneOne");
+                    SceneManager.LoadScene("ZoneOne");
                     break;
                 case 2:
                     data.d_zone_two_ld.level_status_arr[data.d_zone_two_ld.level_index] = 3;
-                    //SceneManager.LoadScene("ZoneTwo");
+                    SceneManager.LoadScene("ZoneTwo");
                     break;
                 case 3:
                     data.d_zone_three_ld.level_status_arr[data.d_zone_three_ld.level_index] = 3;
-                    //SceneManager.LoadScene("ZoneThree");
+                    SceneManager.LoadScene("ZoneThree");
                     break;
                 default:
                     break;
             }
-            loseScreen.EnableMenu(data.d_zone_index);
+            //loseScreen.EnableMenu(data.d_zone_index);
         }
         else
         {
@@ -439,8 +447,8 @@ public class TurnHandler : MonoBehaviour
             //Save Game State
             SaveManager.SaveJsonData(PopulateSaveData());
 
-            winScreen.EnableMenu();
-            //SceneManager.LoadScene("AdaptationSelector");
+            //winScreen.EnableMenu();
+            SceneManager.LoadScene("AdaptationSelector");
         }
     }
 

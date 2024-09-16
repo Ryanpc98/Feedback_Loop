@@ -12,6 +12,8 @@ public class CharacterSelectController : MonoBehaviour
 
     public TextMeshProUGUI levelName;
 
+    public GameObject tooptipPanel;
+
     private List<TurnHandler.CharType> actors = new List<TurnHandler.CharType>();
 
     private SaveData data = new SaveData();
@@ -25,7 +27,7 @@ public class CharacterSelectController : MonoBehaviour
 
         LoadFromSaveData(SaveManager.LoadJsonData());
 
-        levelName.text = data.d_level_name;
+        levelName.text = "Now Entering: " + data.d_level_name;
     }
 
     private SaveData PopulateSaveData()
@@ -91,22 +93,22 @@ public class CharacterSelectController : MonoBehaviour
         if (val == 0)
         {
             actors[0] = TurnHandler.CharType.Basic;
-            outputOne.text = "Basic";
+            outputOne.text = "Soldier";
         }
         if (val == 1)
         {
             actors[0] = TurnHandler.CharType.DPS;
-            outputOne.text = "DPS";
+            outputOne.text = "Pirate";
         }
         if (val == 2)
         {
             actors[0] = TurnHandler.CharType.Tank;
-            outputOne.text = "Tank";
+            outputOne.text = "Knight";
         }
         if (val == 3)
         {
             actors[0] = TurnHandler.CharType.Healer;
-            outputOne.text = "Healer";
+            outputOne.text = "Doctor";
         }
     }
 
@@ -115,22 +117,22 @@ public class CharacterSelectController : MonoBehaviour
         if (val == 0)
         {
             actors[1] = TurnHandler.CharType.Basic;
-            outputTwo.text = "Basic";
+            outputTwo.text = "Soldier";
         }
         if (val == 1)
         {
             actors[1] = TurnHandler.CharType.DPS;
-            outputTwo.text = "DPS";
+            outputTwo.text = "Pirate";
         }
         if (val == 2)
         {
             actors[1] = TurnHandler.CharType.Tank;
-            outputTwo.text = "Tank";
+            outputTwo.text = "Knight";
         }
         if (val == 3)
         {
             actors[1] = TurnHandler.CharType.Healer;
-            outputTwo.text = "Healer";
+            outputTwo.text = "Doctor";
         }
     }
 
@@ -139,22 +141,22 @@ public class CharacterSelectController : MonoBehaviour
         if (val == 0)
         {
             actors[2] = TurnHandler.CharType.Basic;
-            outputThree.text = "Basic";
+            outputThree.text = "Soldier";
         }
         if (val == 1)
         {
             actors[2] = TurnHandler.CharType.DPS;
-            outputThree.text = "DPS";
+            outputThree.text = "Pirate";
         }
         if (val == 2)
         {
             actors[2] = TurnHandler.CharType.Tank;
-            outputThree.text = "Tank";
+            outputThree.text = "Knight";
         }
         if (val == 3)
         {
             actors[2] = TurnHandler.CharType.Healer;
-            outputThree.text = "Healer";
+            outputThree.text = "Doctor";
         }
     }
 
@@ -162,5 +164,15 @@ public class CharacterSelectController : MonoBehaviour
     {
         SaveManager.SaveJsonData(PopulateSaveData());
         SceneManager.LoadScene("DevLevel");
+    }
+
+    public void OpenTooltip()
+    {
+        tooptipPanel.SetActive(true);
+    }
+
+    public void CloseTooltip()
+    {
+        tooptipPanel.SetActive(false);
     }
 }

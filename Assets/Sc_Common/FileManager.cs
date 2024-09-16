@@ -26,6 +26,11 @@ public static class FileManager
     {
         var fullPath = Path.Combine(Application.persistentDataPath, a_FileName);
 
+        if (!File.Exists(fullPath))
+        {
+            SaveManager.WipeData();
+        }
+
         try
         {
             result = File.ReadAllText(fullPath);

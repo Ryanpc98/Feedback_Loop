@@ -28,8 +28,8 @@ public class PC_Healer_BotController : BaseBotController
         actionThreeDamage = 4;
         actionThreeCost = 3;
 
-        actionOneName = "Slash";
-        actionTwoName = "Heal";
+        actionOneName = "Poke";
+        actionTwoName = "Patch Up";
         actionThreeName = "Energize";
 
         actionOneType = ActionType.Attack;

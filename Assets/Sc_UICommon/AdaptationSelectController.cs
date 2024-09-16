@@ -10,6 +10,8 @@ public class AdaptationSelectController : MonoBehaviour
 
     public TextMeshProUGUI outputOne;
 
+    public GameObject tooptipPanel;
+
     private static EnumTypes.AdaptationType selection = EnumTypes.AdaptationType.None;
 
     private SaveData data = new SaveData();
@@ -158,5 +160,15 @@ public class AdaptationSelectController : MonoBehaviour
                 SceneManager.LoadScene("MainMenu");
                 break;
         }
+    }
+
+    public void OpenTooltip()
+    {
+        tooptipPanel.SetActive(true);
+    }
+
+    public void CloseTooltip()
+    {
+        tooptipPanel.SetActive(false);
     }
 }
