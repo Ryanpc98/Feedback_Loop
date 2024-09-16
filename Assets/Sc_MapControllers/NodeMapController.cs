@@ -8,6 +8,10 @@ public class NodeMapController : MonoBehaviour
 {
     [SerializeField] protected Button[] buttons = new Button[10];
 
+    [SerializeField] protected Sprite base_cpu;
+    [SerializeField] protected Sprite[] broken_cpus = new Sprite[3];
+
+
     protected SaveData data = new SaveData();
 
     protected virtual void Start()
@@ -34,6 +38,8 @@ public class NodeMapController : MonoBehaviour
 
         //Level Info
         sd.d_zone_one_ld = data.d_zone_one_ld;
+        sd.d_zone_two_ld = data.d_zone_two_ld;
+        sd.d_zone_three_ld = data.d_zone_three_ld;
 
         //Level Name
         sd.d_level_name = CurLevelNumLookup();
@@ -64,6 +70,8 @@ public class NodeMapController : MonoBehaviour
 
         //Level Info
         data.d_zone_one_ld = sd.d_zone_one_ld;
+        data.d_zone_two_ld = sd.d_zone_two_ld;
+        data.d_zone_three_ld = sd.d_zone_three_ld;
 
         //Level Name
         data.d_level_name = sd.d_level_name;
@@ -115,23 +123,16 @@ public class NodeMapController : MonoBehaviour
 
     public string CurLevelNumLookup()
     {
-        return LevelNumLookup(data.d_zone_one_ld.level_index);
-    }
-
-    public static List<TurnHandler.CharType> GetEnemyBotArray(string node)
-    {
-        switch (node)
+        switch (data.d_zone_index)
         {
-            case "Node One":
-                return new List<TurnHandler.CharType>() { TurnHandler.CharType.DPS, TurnHandler.CharType.Basic, TurnHandler.CharType.Healer };
-            case "Node Two":
-                return new List<TurnHandler.CharType>() { TurnHandler.CharType.DPS, TurnHandler.CharType.Tank, TurnHandler.CharType.Tank };
-            case "Node Three":
-                return new List<TurnHandler.CharType>() { TurnHandler.CharType.DPS, TurnHandler.CharType.DPS, TurnHandler.CharType.Healer };
-            case "Node Four":
-                return new List<TurnHandler.CharType>() { TurnHandler.CharType.DPS, TurnHandler.CharType.Tank, TurnHandler.CharType.Healer };
+            case 1:
+                return LevelNumLookup(data.d_zone_one_ld.level_index);
+            case 2:
+                return LevelNumLookup(data.d_zone_two_ld.level_index);
+            case 3:
+                return LevelNumLookup(data.d_zone_three_ld.level_index);
             default:
-                return new List<TurnHandler.CharType>() { TurnHandler.CharType.Basic, TurnHandler.CharType.Basic, TurnHandler.CharType.Basic };
+                return LevelNumLookup(data.d_zone_one_ld.level_index);
         }
     }
 }

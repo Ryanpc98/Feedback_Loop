@@ -47,6 +47,8 @@ public class CharacterSelectController : MonoBehaviour
 
         //Level Info
         sd.d_zone_one_ld = data.d_zone_one_ld;
+        sd.d_zone_two_ld = data.d_zone_two_ld;
+        sd.d_zone_three_ld = data.d_zone_three_ld;
 
         //Level Name
         sd.d_level_name = data.d_level_name;
@@ -77,6 +79,8 @@ public class CharacterSelectController : MonoBehaviour
 
         //Level Info
         data.d_zone_one_ld = sd.d_zone_one_ld;
+        data.d_zone_two_ld = sd.d_zone_two_ld;
+        data.d_zone_three_ld = sd.d_zone_three_ld;
 
         //Level Name
         data.d_level_name = sd.d_level_name;

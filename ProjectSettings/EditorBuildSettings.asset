@@ -10,7 +10,7 @@ EditorBuildSettings:
     guid: 2cda990e2423bbf4892e6590ba056729
   - enabled: 1
     path: Assets/Scenes/MainMenu.unity
-    guid: 3c1edf186771843429405cf1db419817
+    guid: b59d3ae595b2faa46bf79e73ef687926
   - enabled: 1
     path: Assets/Scenes/BasicMap.unity
     guid: 3988114415522e9488f5cb5e160f2ace
@@ -26,6 +26,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/ZoneOne.unity
     guid: 111b2949b47ee8e4aacacb5896923e8f
+  - enabled: 1
+    path: Assets/Scenes/ZoneTwo.unity
+    guid: 0caa9ce3e3f367f4e96d1c3efd4fe848
+  - enabled: 1
+    path: Assets/Scenes/ZoneThree.unity
+    guid: 0a345a33a178ae642b66ab36ca1de30c
   - enabled: 1
     path: Assets/Scenes/VictoryScene.unity
     guid: 5b2f0c6d4852e1e47a0109431bd4b41e

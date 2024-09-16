@@ -6,7 +6,7 @@ public class PC_Healer_BotController : BaseBotController
 {
     public override void Setup(bool isPlayerTeam, TurnHandler instance)
     {
-        botName = "Healer";
+        botName = "Doctor";
 
         maxHealth = 15f;
         curHealth = maxHealth;
@@ -36,24 +36,30 @@ public class PC_Healer_BotController : BaseBotController
         actionTwoType = ActionType.Heal;
         actionThreeType = ActionType.Buff;
 
+        dmgTakenSFX = EnumTypes.SFX.playerDmg;
+        deathSFX = EnumTypes.SFX.zombieDmg;
+        actionOneSFX = EnumTypes.SFX.clang;
+        actionTwoSFX = EnumTypes.SFX.tape;
+        actionThreeSFX = EnumTypes.SFX.schwoop;
+
         if (isPlayerTeam)
         {
-            curColor = Color.cyan;
+            curColor = Color.white;
             ChangeColor(curColor);
+            sprite.sprite = d_sprite;
         }
         else
         {
-            curColor = Color.red;
+            curColor = Color.white;
             ChangeColor(curColor);
+            sprite.sprite = e_d_sprite;
         }
     }
 
     public override bool ActionChooser(EnumTypes.GameStateInfo gameState)
     {
-        float lowestHPValue = -1;
-        int lowestHPIndex = -1;
-        float lowestEnergyValue = -1;
-        int lowestEnergyIndex = -1;
+        int lowestHPIndex = 0;
+        int lowestEnergyIndex = 0;
         int randomChoice = -1;
 
         //1: Need to heal self
@@ -65,21 +71,19 @@ public class PC_Healer_BotController : BaseBotController
                 return true;
             }
         }
-        for (int i = 0; i < gameState.aiBots; i++)
+        
+        // Find Lowest HP
+        lowestHPIndex = FindLowest(gameState.pcHPArray);
+
+        if (lowestHPIndex == 4)
         {
-            if ((lowestHPIndex == -1 || gameState.aiHPArray[i] < lowestHPValue) && (gameState.aiHPArray[i] > 0f))
-            {
-                lowestHPIndex = i;
-                lowestHPValue = gameState.aiHPArray[i];
-                Debug.Log("PC: " + lowestHPIndex + " has the lowest HP with " + lowestHPValue);
-            }
-            if ((lowestEnergyIndex == -1 || gameState.aiEnergyArrayPct[i] < lowestEnergyValue) && (gameState.aiHPArray[i] > 0f))
-            {
-                lowestEnergyIndex = i;
-                lowestEnergyValue = gameState.aiEnergyArrayPct[i];
-                Debug.Log("PC: " + lowestHPIndex + " has the lowest Energy with " + lowestHPValue);
-            }
+            Debug.Log("Cannot Find Alive Target");
+            handler.ReleaseAiLock();
+            return false;
         }
+
+        lowestEnergyIndex = FindLowest(gameState.pcEnergyArrayPct);
+
         //2: Heal Lowest HP with Two
         if (ActionTwoCallback(handler.GetTargetFromIndex(false, lowestHPIndex)))
         {
@@ -107,6 +111,14 @@ public class PC_Healer_BotController : BaseBotController
                 break;
             case (1):
                 int tgt = Random.Range(0, 3);
+                for (int t = 0; t < 3; t++)
+                {
+                    tgt = (tgt + 1) % 3;
+                    if (gameState.pcHPArray[tgt] <= 0f)
+                    {
+                        break;
+                    }
+                }
                 //5: Attack random enemy
                 if (ActionOneCallback(handler.GetTargetFromIndex(true, tgt)))
                 {
@@ -158,6 +170,7 @@ public class PC_Healer_BotController : BaseBotController
 
         Debug.Log("Executing Action 1");
         StartCoroutine(curTarget.FlashColor(flashColor, time));
+        handler.PlaySFX(actionOneSFX);
         curTarget.ApplyDamage(actionOneDamage);
 
         state = State.Returning;
@@ -191,6 +204,7 @@ public class PC_Healer_BotController : BaseBotController
 
         Debug.Log("Executing Action 2");
         StartCoroutine(curTarget.FlashColor(flashColor, time));
+        handler.PlaySFX(actionTwoSFX);
         curTarget.ApplyHealing(actionTwoDamage);
 
         state = State.Returning;
@@ -224,6 +238,7 @@ public class PC_Healer_BotController : BaseBotController
 
         Debug.Log("Executing Action 3");
         StartCoroutine(curTarget.FlashColor(flashColor, time));
+        handler.PlaySFX(actionThreeSFX);
         curTarget.GrantEnergy(actionThreeDamage);
 
         state = State.Returning;

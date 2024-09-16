@@ -33,4 +33,19 @@ public class EnumTypes : MonoBehaviour
         UpgradedFirewall,
         EfficientRouting
     }
+
+    public enum SFX
+    {
+        boom,
+        clang,
+        hitSound,
+        playerDmg,
+        punch,
+        punch_2,
+        punch_3,
+        schwoop,
+        skeletonDmg,
+        tape,
+        zombieDmg,
+    }
 }

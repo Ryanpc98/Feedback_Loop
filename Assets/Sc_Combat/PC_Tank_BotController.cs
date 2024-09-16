@@ -6,7 +6,7 @@ public class PC_Tank_BotController : BaseBotController
 {
     public override void Setup(bool isPlayerTeam, TurnHandler instance)
     {
-        botName = "Tank";
+        botName = "Knight";
 
         maxHealth = 40f;
         curHealth = maxHealth;
@@ -36,22 +36,29 @@ public class PC_Tank_BotController : BaseBotController
         actionTwoType = ActionType.Heal;
         actionThreeType = ActionType.AoE;
 
+        dmgTakenSFX = EnumTypes.SFX.playerDmg;
+        deathSFX = EnumTypes.SFX.zombieDmg;
+        actionOneSFX = EnumTypes.SFX.punch;
+        actionTwoSFX = EnumTypes.SFX.tape;
+        actionThreeSFX = EnumTypes.SFX.boom;
+
         if (isPlayerTeam)
         {
-            curColor = Color.cyan;
+            curColor = Color.white;
             ChangeColor(curColor);
+            sprite.sprite = d_sprite;
         }
         else
         {
-            curColor = Color.red;
+            curColor = Color.white;
             ChangeColor(curColor);
+            sprite.sprite = e_d_sprite;
         }
     }
 
     public override bool ActionChooser(EnumTypes.GameStateInfo gameState)
     {
-        float lowestHPValue = -1;
-        int lowestHPIndex = -1;
+        int lowestHPIndex = 0;
         int randomChoice = -1;
 
         //1: Need to heal
@@ -63,22 +70,24 @@ public class PC_Tank_BotController : BaseBotController
                 return true;
             }
         }
+
+        // Find Lowest HP
+        lowestHPIndex = FindLowest(gameState.pcHPArray);
+
+        if (lowestHPIndex == 4)
+        {
+            Debug.Log("Cannot Find Alive Target");
+            handler.ReleaseAiLock();
+            return false;
+        }
+
         //2: We have the energy for the AoE
         if (curEnergy >= actionThreeCost)
         {
-            if (ActionThreeCallback(handler.GetTargetFromIndex(true, 2)))
+            if (ActionThreeCallback(handler.GetTargetFromIndex(true, lowestHPIndex)))
             {
                 Debug.Log("AI: " + gameState.selfIndex + " using ActionThree (Opporunistic)");
                 return true;
-            }
-        }
-        for (int i = 0; i < gameState.pcBots; i++)
-        {
-            if ((lowestHPIndex == -1 || gameState.pcHPArray[i] < lowestHPValue) && (gameState.pcHPArray[i] > 0f))
-            {
-                lowestHPIndex = i;
-                lowestHPValue = gameState.pcHPArray[i];
-                Debug.Log("PC: " + lowestHPIndex + " has the lowest HP with " + lowestHPValue);
             }
         }
 
@@ -96,7 +105,15 @@ public class PC_Tank_BotController : BaseBotController
                 break;
             case (1):
                 int tgt = Random.Range(0, 3);
-                //3: Attack Lowest HP with One
+                for (int t = 0; t < 3; t++)
+                {
+                    tgt = (tgt + 1) % 3;
+                    if (gameState.pcHPArray[tgt] <= 0f)
+                    {
+                        break;
+                    }
+                }
+                //3: Attack Random with One
                 if (ActionOneCallback(handler.GetTargetFromIndex(true, tgt)))
                 {
                     Debug.Log("AI: " + gameState.selfIndex + " using ActionOne (Random) on " + tgt);
@@ -146,6 +163,7 @@ public class PC_Tank_BotController : BaseBotController
 
         Debug.Log("Executing Action 1");
         StartCoroutine(curTarget.FlashColor(flashColor, time));
+        handler.PlaySFX(actionOneSFX);
         curTarget.ApplyDamage(actionOneDamage);
 
         state = State.Returning;
@@ -179,6 +197,7 @@ public class PC_Tank_BotController : BaseBotController
 
         Debug.Log("Executing Action 2");
         StartCoroutine(curTarget.FlashColor(flashColor, time));
+        handler.PlaySFX(actionTwoSFX);
         curTarget.ApplyHealing(actionTwoDamage);
 
         state = State.Returning;
@@ -212,6 +231,7 @@ public class PC_Tank_BotController : BaseBotController
 
         Debug.Log("Executing Action 3");
         StartCoroutine(curTarget.FlashColor(flashColor, time));
+        handler.PlaySFX(actionThreeSFX);
         handler.DealAoeDamage(isPlayer, actionThreeDamage);
 
         state = State.Returning;

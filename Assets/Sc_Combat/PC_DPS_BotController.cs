@@ -6,7 +6,7 @@ public class PC_DPS_BotController : BaseBotController
 {
     public override void Setup(bool isPlayerTeam, TurnHandler instance)
     {
-        botName = "DPS";
+        botName = "Pirate";
 
         maxHealth = 25f;
         curHealth = maxHealth;
@@ -28,49 +28,41 @@ public class PC_DPS_BotController : BaseBotController
         actionThreeDamage = 3;
         actionThreeCost = 3;
 
-        actionOneName = "Punch";
-        actionTwoName = "Jab";
+        actionOneName = "Stab";
+        actionTwoName = "Slash";
         actionThreeName = "Bomb";
 
         actionOneType = ActionType.Attack;
         actionTwoType = ActionType.Attack;
         actionThreeType = ActionType.AoE;
 
+        dmgTakenSFX = EnumTypes.SFX.playerDmg;
+        deathSFX = EnumTypes.SFX.zombieDmg;
+        actionOneSFX = EnumTypes.SFX.punch_2;
+        actionTwoSFX = EnumTypes.SFX.clang;
+        actionThreeSFX = EnumTypes.SFX.boom;
+
         if (isPlayerTeam)
         {
-            curColor = Color.cyan;
+            curColor = Color.white;
             ChangeColor(curColor);
+            sprite.sprite = d_sprite;
         }
         else
         {
-            curColor = Color.red;
+            curColor = Color.white;
             ChangeColor(curColor);
+            sprite.sprite = e_d_sprite;
         }
     }
 
     public override bool ActionChooser(EnumTypes.GameStateInfo gameState)
     {
-        float lowestHPValue = -1;
-        int lowestHPIndex = -1;
+        int lowestHPIndex = 0;
         int randomChoice = -1;
 
-        //1: We have the energy for the AoE
-        if (curEnergy >= actionThreeCost)
-        {
-            if (ActionThreeCallback(handler.GetTargetFromIndex(true, 2)))
-            {
-                Debug.Log("AI: " + gameState.selfIndex + " using ActionThree (Opporunistic)");
-                return true;
-            }
-        }
         for (int i = 0; i < gameState.pcBots; i++)
         {
-            if ((lowestHPIndex == -1 || gameState.pcHPArray[i] < lowestHPValue) && (gameState.pcHPArray[i] > 0f))
-            {
-                lowestHPIndex = i;
-                lowestHPValue = gameState.pcHPArray[i];
-                Debug.Log("PC: " + lowestHPIndex + " has the lowest HP with " + lowestHPValue);
-            }
             //2: Can kill with Two
             if (gameState.pcHPArray[i] <= actionTwoDamage && gameState.pcHPArray[i] > 0f)
             {
@@ -88,6 +80,26 @@ public class PC_DPS_BotController : BaseBotController
                     Debug.Log("AI: " + gameState.selfIndex + " using ActionOne (Kill) on " + i);
                     return true;
                 }
+            }
+        }
+
+        // Find Lowest HP
+        lowestHPIndex = FindLowest(gameState.pcHPArray);
+
+        if (lowestHPIndex == 4)
+        {
+            Debug.Log("Cannot Find Alive Target");
+            handler.ReleaseAiLock();
+            return false;
+        }
+
+        //1: We have the energy for the AoE
+        if (curEnergy >= actionThreeCost)
+        {
+            if (ActionThreeCallback(handler.GetTargetFromIndex(true, lowestHPIndex)))
+            {
+                Debug.Log("AI: " + gameState.selfIndex + " using ActionThree (Opporunistic)");
+                return true;
             }
         }
 
@@ -111,13 +123,21 @@ public class PC_DPS_BotController : BaseBotController
                 break;
             case (1):
                 int tgt = Random.Range(0, 3);
-                //4: Attack Lowest HP with Two
+                for (int t = 0; t < 3; t++)
+                {
+                    tgt = (tgt + 1) % 3;
+                    if (gameState.pcHPArray[tgt] <= 0f)
+                    {
+                        break;
+                    }
+                }
+                //4: Attack Random with Two
                 if (ActionTwoCallback(handler.GetTargetFromIndex(true, tgt)))
                 {
                     Debug.Log("AI: " + gameState.selfIndex + " using ActionTwo (Random) on " + tgt);
                     return true;
                 }
-                //5: Attack Lowest HP with One
+                //5: Attack Random with One
                 else if (ActionOneCallback(handler.GetTargetFromIndex(true, tgt)))
                 {
                     Debug.Log("AI: " + gameState.selfIndex + " using ActionOne (Random) on " + tgt);
@@ -166,6 +186,7 @@ public class PC_DPS_BotController : BaseBotController
 
         Debug.Log("Executing Action 1");
         StartCoroutine(curTarget.FlashColor(flashColor, time));
+        handler.PlaySFX(actionOneSFX);
         curTarget.ApplyDamage(actionOneDamage);
 
         state = State.Returning;
@@ -199,6 +220,7 @@ public class PC_DPS_BotController : BaseBotController
 
         Debug.Log("Executing Action 1");
         StartCoroutine(curTarget.FlashColor(flashColor, time));
+        handler.PlaySFX(actionTwoSFX);
         curTarget.ApplyDamage(actionTwoDamage);
 
         state = State.Returning;
@@ -232,6 +254,7 @@ public class PC_DPS_BotController : BaseBotController
 
         Debug.Log("Executing Action 3");
         StartCoroutine(curTarget.FlashColor(flashColor, time));
+        handler.PlaySFX(actionThreeSFX);
         handler.DealAoeDamage(isPlayer, actionThreeDamage);
 
         state = State.Returning;

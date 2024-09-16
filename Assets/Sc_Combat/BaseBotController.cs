@@ -5,6 +5,16 @@ using UnityEngine;
 
 public class BaseBotController : MonoBehaviour
 {
+    [SerializeField] protected Sprite d_sprite;
+    [SerializeField] protected Sprite l_sprite;
+    [SerializeField] protected Sprite r_sprite;
+    [SerializeField] protected Sprite u_sprite;
+
+    [SerializeField] protected Sprite e_d_sprite;
+    [SerializeField] protected Sprite e_l_sprite;
+    [SerializeField] protected Sprite e_r_sprite;
+    [SerializeField] protected Sprite e_u_sprite;
+
     /*======Variables======*/
     //Sprite renderer
     protected SpriteRenderer sprite;
@@ -55,6 +65,14 @@ public class BaseBotController : MonoBehaviour
     protected ActionType actionTwoType = ActionType.Attack;
     protected ActionType actionThreeType = ActionType.Attack;
 
+    //Sounds Associated With the Bot
+    protected EnumTypes.SFX dmgTakenSFX = EnumTypes.SFX.playerDmg;
+    protected EnumTypes.SFX deathSFX = EnumTypes.SFX.zombieDmg;
+    protected EnumTypes.SFX actionOneSFX = EnumTypes.SFX.clang;
+    protected EnumTypes.SFX actionTwoSFX = EnumTypes.SFX.punch;
+    protected EnumTypes.SFX actionThreeSFX = EnumTypes.SFX.hitSound;
+
+
     protected Color curColor;
 
     //Possible Bot States
@@ -96,16 +114,24 @@ public class BaseBotController : MonoBehaviour
         actionTwoType = ActionType.Attack;
         actionThreeType = ActionType.Attack;
 
+        dmgTakenSFX = EnumTypes.SFX.playerDmg;
+        deathSFX = EnumTypes.SFX.zombieDmg;
+        actionOneSFX = EnumTypes.SFX.clang;
+        actionTwoSFX = EnumTypes.SFX.punch;
+        actionThreeSFX = EnumTypes.SFX.hitSound;
+
         handler = instance;
         if (isPlayerTeam)
         {
-            curColor = Color.cyan;
+            curColor = Color.white;
             ChangeColor(curColor);
+            sprite.sprite = d_sprite;
         }
         else
         {
-            curColor = Color.red;
+            curColor = Color.white;
             ChangeColor(curColor);
+            sprite.sprite = e_d_sprite;
         }
     }
 
@@ -219,6 +245,7 @@ public class BaseBotController : MonoBehaviour
     //Returns if attack is possible
     public bool SpendEnergy(float cost)
     {
+        Debug.Log("Attemping to Spend " + cost.ToString() + " energy out of " + curEnergy.ToString());
         if (curEnergy >= cost && IsAlive() && state == State.Idle)
         {
             curEnergy -= cost;
@@ -276,6 +303,26 @@ public class BaseBotController : MonoBehaviour
         energyBar.UpdateEnergyBar(curEnergy, maxEnergy);
     }
 
+    // Find Lowest in Array
+    // Used for ActionChooser
+    protected int FindLowest(float[] arr)
+    {
+        int index = 4;
+        float val = 999f;
+
+        for (int i = 0; i < arr.Length; i++)
+        {
+            if ((arr[i] < val) && (arr[i] > 0f))
+            {
+                index = i;
+                val = arr[i];
+                Debug.Log("PC: " + index + " has the lowest HP with " + val);
+            }
+        }
+
+        return index;
+    }
+
     /*======Gameplay======*/
     private void Awake()
     {
@@ -289,7 +336,6 @@ public class BaseBotController : MonoBehaviour
     // Handles sprite movement
     private void Update()
     {
-
         switch (state)
         {
             case State.Idle:
@@ -297,6 +343,14 @@ public class BaseBotController : MonoBehaviour
             case State.Busy:
                 break;
             case State.Sliding:
+                if (isPlayer)
+                {
+                    sprite.sprite = r_sprite;
+                }
+                else
+                {
+                    sprite.sprite = e_l_sprite;
+                }
                 SlideToPosition(curTarget.GetPosition());
                 if (Vector3.Distance(GetPosition(), curTarget.GetPosition()) < reachedDistance)
                 {
@@ -305,10 +359,26 @@ public class BaseBotController : MonoBehaviour
                 }
                 break;
             case State.Returning:
+                if (isPlayer)
+                {
+                    sprite.sprite = l_sprite;
+                }
+                else
+                {
+                    sprite.sprite = e_r_sprite;
+                }
                 SlideToPosition(startingPosition);
                 if (Vector3.Distance(GetPosition(), startingPosition) < reachedDistance)
                 {
                     transform.position = startingPosition;
+                    if (isPlayer)
+                    {
+                        sprite.sprite = d_sprite;
+                    }
+                    else
+                    {
+                        sprite.sprite = e_d_sprite;
+                    }
                     state = State.Idle;
                     handler.ReleaseAiLock();
                 }
@@ -319,11 +389,13 @@ public class BaseBotController : MonoBehaviour
     //Applies damage and checks for death
     public void ApplyDamage(float damage)
     {
+        handler.PlaySFX(dmgTakenSFX);
         curHealth -= damage;
         healthBar.UpdateHealthBar(curHealth, maxHealth);
         Debug.Log("Owie, I have " + curHealth + " health");
         if (curHealth <= 0)
         {
+            handler.PlaySFX(deathSFX);
             Debug.Log("Bruh I'm dead");
             state = State.Dead;
             handler.setDeadCheckFlag();
@@ -395,7 +467,7 @@ public class BaseBotController : MonoBehaviour
     // Changes max health by val%
     public void ChangeMaxHealth(float val)
     {
-        maxHealth += (float)Math.Round((maxHealth * val), 1, MidpointRounding.AwayFromZero);
+        maxHealth += (float)Math.Round((maxHealth * val), 0, MidpointRounding.AwayFromZero);
         curHealth = maxHealth;
         healthBar.UpdateHealthBar(curHealth, maxHealth);
     }
@@ -406,7 +478,7 @@ public class BaseBotController : MonoBehaviour
         switch (action)
         {
             case (1):
-                if (actionOneCost + val <= 1)
+                if ((actionOneCost + val) <= 1)
                 {
                     actionOneCost = 1;
                 }
@@ -414,9 +486,10 @@ public class BaseBotController : MonoBehaviour
                 {
                     actionOneCost += val;
                 }
+                Debug.Log("Action One Cost is Now: " + actionOneCost);
                 break;
             case (2):
-                if (actionTwoCost + val <= 1)
+                if ((actionTwoCost + val) <= 1)
                 {
                     actionTwoCost = 1;
                 }
@@ -424,9 +497,10 @@ public class BaseBotController : MonoBehaviour
                 {
                     actionTwoCost += val;
                 }
+                Debug.Log("Action Two Cost is Now: " + actionTwoCost);
                 break;
             case (3):
-                if (actionThreeCost + val <= 1)
+                if ((actionThreeCost + val) <= 1)
                 {
                     actionThreeCost = 1;
                 }
@@ -434,6 +508,7 @@ public class BaseBotController : MonoBehaviour
                 {
                     actionThreeCost += val;
                 }
+                Debug.Log("Action Three Cost is Now: " + actionThreeCost);
                 break;
         }
     }
@@ -441,37 +516,11 @@ public class BaseBotController : MonoBehaviour
     // Changes the cost of all actions by val
     public void ChangeAllActionCosts(int val)
     {
-        // Action One
-        if (actionOneCost + val <= 1)
+        for(int i = 0; i < 3; i++)
         {
-            actionOneCost += val;
-        }
-        else
-        {
-            actionOneCost = 1;
-        }
-
-        //Action Two
-        if (actionTwoCost + val <= 1)
-        {
-            actionTwoCost += val;
-        }
-        else
-        {
-            actionTwoCost = 1;
-        }
-
-        //Action Three
-        if (actionThreeCost + val <= 1)
-        {
-            actionThreeCost += val;
-        }
-        else
-        {
-            actionThreeCost = 1;
+            ChangeActionCost(i, val);
         }
     }
-
 
     /*======Actions======*/
     //UNIMPLEMENTED //Generic functions for children to overrride

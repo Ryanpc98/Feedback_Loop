@@ -6,7 +6,7 @@ public class PC_Basic_BotController : BaseBotController
 {
     public override void Setup(bool isPlayerTeam, TurnHandler instance)
     {
-        botName = "Basic Bot";
+        botName = "Soldier";
 
         maxHealth = 20f;
         curHealth = maxHealth;
@@ -28,30 +28,37 @@ public class PC_Basic_BotController : BaseBotController
         actionThreeDamage = 10;
         actionThreeCost = 6;
 
-        actionOneName = "Punch";
-        actionTwoName = "Heal";
-        actionThreeName = "Kick";
+        actionOneName = "Melee";
+        actionTwoName = "First Aid";
+        actionThreeName = "Bash";
 
         actionOneType = ActionType.Attack;
         actionTwoType = ActionType.Heal;
         actionThreeType = ActionType.Attack;
 
+        dmgTakenSFX = EnumTypes.SFX.playerDmg;
+        deathSFX = EnumTypes.SFX.zombieDmg;
+        actionOneSFX = EnumTypes.SFX.punch;
+        actionTwoSFX = EnumTypes.SFX.tape;
+        actionThreeSFX = EnumTypes.SFX.punch_2;
+
         if (isPlayerTeam)
         {
-            curColor = Color.cyan;
+            curColor = Color.white;
             ChangeColor(curColor);
+            sprite.sprite = d_sprite;
         }
         else
         {
-            curColor = Color.red;
+            curColor = Color.white;
             ChangeColor(curColor);
+            sprite.sprite = e_d_sprite;
         }
     }
 
     public override bool ActionChooser(EnumTypes.GameStateInfo gameState)
     {
-        float lowestHPValue = -1;
-        int lowestHPIndex = -1;
+        int lowestHPIndex = 0;
         int randomChoice = -1;
 
         //1: Need to heal
@@ -65,12 +72,6 @@ public class PC_Basic_BotController : BaseBotController
         }
         for (int i = 0; i < gameState.pcBots; i++)
         {
-            if ((lowestHPIndex == -1 || gameState.pcHPArray[i] < lowestHPValue) && (gameState.pcHPArray[i] > 0f))
-            {
-                lowestHPIndex = i;
-                lowestHPValue = gameState.pcHPArray[i];
-                Debug.Log("PC: " + lowestHPIndex + " has the lowest HP with " + lowestHPValue);
-            }
             //2: Can kill with Three
             if (gameState.pcHPArray[i] <= actionThreeDamage && gameState.pcHPArray[i] > 0f)
             {
@@ -90,6 +91,17 @@ public class PC_Basic_BotController : BaseBotController
                 }
             }
         }
+
+        // Find Lowest HP
+        lowestHPIndex = FindLowest(gameState.pcHPArray);
+
+        if (lowestHPIndex == 4)
+        {
+            Debug.Log("Cannot Find Alive Target");
+            handler.ReleaseAiLock();
+            return false;
+        }
+
         for (int j = 0; j < gameState.aiBots; j++)
         {
             //4: Need to Heal Teammate
@@ -122,6 +134,14 @@ public class PC_Basic_BotController : BaseBotController
                 break;
             case (1):
                 int tgt = Random.Range(0, 3);
+                for (int t = 0; t < 3; t++)
+                {
+                    tgt = (tgt + 1) % 3;
+                    if (gameState.pcHPArray[tgt] <= 0f)
+                    {
+                        break;
+                    }
+                }
                 //5: Attack Random with Three
                 if (ActionThreeCallback(handler.GetTargetFromIndex(true, tgt)))
                 {
@@ -178,6 +198,7 @@ public class PC_Basic_BotController : BaseBotController
 
         Debug.Log("Executing Action 1");
         StartCoroutine(curTarget.FlashColor(flashColor, time));
+        handler.PlaySFX(actionOneSFX);
         curTarget.ApplyDamage(actionOneDamage);
 
         state = State.Returning;
@@ -211,6 +232,7 @@ public class PC_Basic_BotController : BaseBotController
 
         Debug.Log("Executing Action 2");
         StartCoroutine(curTarget.FlashColor(flashColor, time));
+        handler.PlaySFX(actionTwoSFX);
         curTarget.ApplyHealing(actionTwoDamage);
 
         state = State.Returning;
@@ -244,6 +266,7 @@ public class PC_Basic_BotController : BaseBotController
 
         Debug.Log("Executing Action 3");
         StartCoroutine(curTarget.FlashColor(flashColor, time));
+        handler.PlaySFX(actionThreeSFX);
         curTarget.ApplyDamage(actionThreeDamage);
 
         state = State.Returning;

@@ -16,29 +16,34 @@ public class ZoneOneNodeMapController : NodeMapController
 
             if (data.d_zone_one_ld.level_status_arr[i] == -1)
             {
-                buttons[i - 1].image.color = Color.cyan;
+                //buttons[i - 1].image.color = Color.cyan;
+                buttons[i - 1].image.sprite = broken_cpus[(i - 1) % 3];
+
             }
             else if (data.d_zone_one_ld.level_status_arr[i] == 1)
             {
-                buttons[i - 1].image.color = Color.yellow;
+                //buttons[i - 1].image.color = Color.yellow;
                 buttons[i - 1].interactable = true;
             }
             else if (data.d_zone_one_ld.level_status_arr[i] == 2)
             {
-                buttons[i - 1].image.color = Color.green;
+                //buttons[i - 1].image.color = Color.green;
+                buttons[i - 1].image.sprite = broken_cpus[(i - 1) % 3];
 
                 if (i <= 4)
                 {
-                    buttons[i + 3].image.color = Color.cyan;
+                    //buttons[i + 3].image.color = Color.cyan;
+                    buttons[i + 3].image.sprite = broken_cpus[(i + 3) % 3];
                 }
                 else
                 {
-                    buttons[i - 5].image.color = Color.cyan;
+                    //buttons[i - 5].image.color = Color.cyan;
+                    buttons[i - 5].image.sprite = broken_cpus[(i - 5) % 3];
                 }
             }
             else if (data.d_zone_one_ld.level_status_arr[i] == 3)
             {
-                buttons[i - 1].image.color = Color.red;
+                //buttons[i - 1].image.color = Color.yellow;
                 buttons[i - 1].interactable = true;
 
                 if (i == 9)
@@ -47,28 +52,35 @@ public class ZoneOneNodeMapController : NodeMapController
                 }
                 else if (i <= 4)
                 {
-                    buttons[i + 3].image.color = Color.cyan;
+                    //buttons[i + 3].image.color = Color.cyan;
+                    buttons[i + 3].image.sprite = broken_cpus[(i + 3) % 3];
                     data.d_zone_one_ld.level_status_arr[(i + 4) % 10] = -1;
                 }
                 else
                 {
-                    buttons[i - 5].image.color = Color.cyan;
+                    //buttons[i - 5].image.color = Color.cyan;
+                    buttons[i - 5].image.sprite = broken_cpus[(i - 5) % 3];
                     buttons[i - 5].interactable = false; ;
                     data.d_zone_one_ld.level_status_arr[i - 4] = -1;
                 }
             }
             else if (data.d_zone_one_ld.level_status_arr[i] == 4)
             {
-                buttons[i - 1].image.color = Color.magenta;
+                //buttons[i - 1].image.color = Color.magenta;
+                buttons[i - 1].image.sprite = broken_cpus[(i - 1) % 3];
 
-                if(i == 9)
+                if (i == 9)
                 {
                     Debug.Log("Level Complete");
-                    SceneManager.LoadScene("VictoryScene");
+                    data.d_zone_index = 2;
+                    data.d_zone_two_ld.level_index = 1;
+                    SaveManager.SaveJsonData(PopulateSaveData());
+                    SceneManager.LoadScene("ZoneTwo");
                 }
                 else if (i <= 4)
                 {
-                    buttons[i + 3].image.color = Color.cyan;
+                    //buttons[i + 3].image.color = Color.cyan;
+                    buttons[i + 3].image.sprite = broken_cpus[(i + 3) % 3];
                     data.d_zone_one_ld.level_status_arr[(i + 4) % 10] = -1;
                     if (i != 4)
                     {
@@ -78,7 +90,8 @@ public class ZoneOneNodeMapController : NodeMapController
                 }
                 else
                 {
-                    buttons[i - 5].image.color = Color.cyan;
+                    //buttons[i - 5].image.color = Color.cyan;
+                    buttons[i - 5].image.sprite = broken_cpus[(i - 5) % 3];
                     buttons[i - 5].interactable = false; ;
                     data.d_zone_one_ld.level_status_arr[i - 4] = -1;
 
@@ -87,7 +100,7 @@ public class ZoneOneNodeMapController : NodeMapController
                     {
                         data.d_zone_one_ld.level_status_arr[i - 3] = 1;
                         Debug.Log("Enabling Button: " + i.ToString() + " (" + (i - 3).ToString() + ")");
-                        buttons[i - 4].image.color = Color.yellow;
+                        //buttons[i - 4].image.color = Color.yellow;
                         buttons[i - 4].interactable = true;
                     }
                 }
@@ -132,7 +145,7 @@ public class ZoneOneNodeMapController : NodeMapController
         }
     }
 
-    public static List<TurnHandler.CharType> GetEnemyBotArrayZoneOne(string node)
+    public static List<TurnHandler.CharType> GetEnemyBotArray(string node)
     {
         switch (node)
         {
@@ -153,7 +166,7 @@ public class ZoneOneNodeMapController : NodeMapController
             case "Node Eight":
                 return new List<TurnHandler.CharType>() { TurnHandler.CharType.DPS, TurnHandler.CharType.Tank, TurnHandler.CharType.Healer };
             case "Node Nine":
-                return new List<TurnHandler.CharType>() { TurnHandler.CharType.DPS, TurnHandler.CharType.B_Tank, TurnHandler.CharType.Healer };
+                return new List<TurnHandler.CharType>() { TurnHandler.CharType.DPS, TurnHandler.CharType.B_Basic, TurnHandler.CharType.Healer };
             default:
                 return new List<TurnHandler.CharType>() { TurnHandler.CharType.Basic, TurnHandler.CharType.Basic, TurnHandler.CharType.Basic };
         }

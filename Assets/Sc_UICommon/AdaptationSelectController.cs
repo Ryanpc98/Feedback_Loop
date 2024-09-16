@@ -61,6 +61,8 @@ public class AdaptationSelectController : MonoBehaviour
 
         //Level Info
         sd.d_zone_one_ld = data.d_zone_one_ld;
+        sd.d_zone_two_ld = data.d_zone_two_ld;
+        sd.d_zone_three_ld = data.d_zone_three_ld;
 
         //Level Name
         sd.d_level_name = data.d_level_name;
@@ -91,6 +93,8 @@ public class AdaptationSelectController : MonoBehaviour
 
         //Level Info
         data.d_zone_one_ld = sd.d_zone_one_ld;
+        data.d_zone_two_ld = sd.d_zone_two_ld;
+        data.d_zone_three_ld = sd.d_zone_three_ld;
 
         //Level Name
         data.d_level_name = sd.d_level_name;
@@ -138,6 +142,21 @@ public class AdaptationSelectController : MonoBehaviour
     public void HandleContinueButton()
     {
         SaveManager.SaveJsonData(PopulateSaveData());
-        SceneManager.LoadScene("ZoneOne");
+
+        switch (data.d_zone_index)
+        {
+            case 1:
+                SceneManager.LoadScene("ZoneOne");
+                break;
+            case 2:
+                SceneManager.LoadScene("ZoneTwo");
+                break;
+            case 3:
+                SceneManager.LoadScene("ZoneThree");
+                break;
+            default:
+                SceneManager.LoadScene("MainMenu");
+                break;
+        }
     }
 }

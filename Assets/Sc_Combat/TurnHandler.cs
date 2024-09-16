@@ -18,21 +18,38 @@ public class TurnHandler : MonoBehaviour
     [SerializeField] private Transform PC_TankBot;
     [SerializeField] private Transform PC_HealerBot;
     [SerializeField] private Transform Boss_TankBot;
+    [SerializeField] private Transform Boss_DPSBot;
+    [SerializeField] private Transform Boss_BasicBot;
 
     [SerializeField] private TextMeshProUGUI levelNameText;
     [SerializeField] private TextMeshProUGUI turnCounterText;
     [SerializeField] private BattleButtonHandler mainUI;
 
+    [SerializeField] private LevelCompleteMenu winScreen;
+    [SerializeField] private LevelFailedMenu loseScreen;
+
+    public AudioClip boom;
+    public AudioClip clang;
+    public AudioClip hitSound;
+    public AudioClip playerDmg;
+    public AudioClip punch;
+    public AudioClip punch_2;
+    public AudioClip punch_3;
+    public AudioClip schwoop;
+    public AudioClip skeletonDmg;
+    public AudioClip tape;
+    public AudioClip zombieDmg;
+
     public static List<string> adaptations = new List<string>();
 
     //Spawn Points
-    private static Vector3 playerPos1 = new Vector3(-5, 3.5f);
-    private static Vector3 playerPos2 = new Vector3(-5, 1.5f);
-    private static Vector3 playerPos3 = new Vector3(-5, -0.5f);
+    private static Vector3 playerPos1 = new Vector3(-5.2f, 3.5f);
+    private static Vector3 playerPos2 = new Vector3(-3.7f, 1.5f);
+    private static Vector3 playerPos3 = new Vector3(-5.2f, -0.5f);
 
-    private static Vector3 AiPos1 = new Vector3(+5, 3.5f);
-    private static Vector3 AiPos2 = new Vector3(+5, 1.5f);
-    private static Vector3 AiPos3 = new Vector3(+5, -0.5f);
+    private static Vector3 AiPos1 = new Vector3(+5.2f, 3.5f);
+    private static Vector3 AiPos2 = new Vector3(+3.7f, 1.5f);
+    private static Vector3 AiPos3 = new Vector3(+5.2f, -0.5f);
 
     private static Vector3[] playerPosArray = { playerPos1, playerPos2, playerPos3 };
     private static Vector3[] AiPosArray = { AiPos1, AiPos2, AiPos3 };
@@ -55,6 +72,7 @@ public class TurnHandler : MonoBehaviour
     //Save Data Variables
     private SaveData data = new SaveData();
     private List<CharType> s_aiRoster = new List<CharType>();
+    private float s_volume;
 
     //Current Player Bot Selection
     private int actor;
@@ -90,7 +108,9 @@ public class TurnHandler : MonoBehaviour
         DPS,
         Healer,
         Tank,
-        B_Tank
+        B_Tank,
+        B_DPS,
+        B_Basic
     }
 
     /*======Utilities======*/
@@ -101,7 +121,7 @@ public class TurnHandler : MonoBehaviour
         return instance;
     }
 
-    private SaveData PopulateSaveData()
+    public SaveData PopulateSaveData()
     {
         SaveData sd = new SaveData();
 
@@ -120,6 +140,8 @@ public class TurnHandler : MonoBehaviour
 
         //Level Info
         sd.d_zone_one_ld = data.d_zone_one_ld;
+        sd.d_zone_two_ld = data.d_zone_two_ld;
+        sd.d_zone_three_ld = data.d_zone_three_ld;
 
         //Level Name
         sd.d_level_name = data.d_level_name;
@@ -127,7 +149,7 @@ public class TurnHandler : MonoBehaviour
         return sd;
     }
 
-    private void LoadFromSaveData(SaveData sd)
+    public void LoadFromSaveData(SaveData sd)
     {
         //Adaptations
         data.d_adaptations.increasedRAM = sd.d_adaptations.increasedRAM;
@@ -151,6 +173,8 @@ public class TurnHandler : MonoBehaviour
 
         //Level Info
         data.d_zone_one_ld = sd.d_zone_one_ld;
+        data.d_zone_two_ld = sd.d_zone_two_ld;
+        data.d_zone_three_ld = sd.d_zone_three_ld;
 
         //Level Name
         data.d_level_name = sd.d_level_name;
@@ -162,14 +186,21 @@ public class TurnHandler : MonoBehaviour
         instance = this;
         state = State.BusyAll;
         LoadFromSaveData(SaveManager.LoadJsonData());
+        s_volume = PlayerPrefs.GetFloat(SaveManager.m_VolumeKey, 0.75f);
 
         switch (data.d_zone_index)
         {
             case (1):
-                s_aiRoster = ZoneOneNodeMapController.GetEnemyBotArrayZoneOne(data.d_level_name);
+                s_aiRoster = ZoneOneNodeMapController.GetEnemyBotArray(data.d_level_name);
+                break;
+            case (2):
+                s_aiRoster = ZoneTwoNodeMapController.GetEnemyBotArray(data.d_level_name);
+                break;
+            case (3):
+                s_aiRoster = ZoneThreeNodeMapController.GetEnemyBotArray(data.d_level_name);
                 break;
             default:
-                s_aiRoster = NodeMapController.GetEnemyBotArray(data.d_level_name);
+                s_aiRoster = new List<CharType>() {CharType.Basic, CharType.Basic, CharType.Basic};
                 break;
         }
 
@@ -180,6 +211,54 @@ public class TurnHandler : MonoBehaviour
         StartBattle();
     }
 
+    // This feel like one of those functions that gets made fun of in a youtube video
+    public void PlaySFX(EnumTypes.SFX sfx)
+    {
+        AudioClip tmp;
+
+        switch (sfx)
+        {
+            case EnumTypes.SFX.boom:
+                tmp = boom;
+                break;
+            case EnumTypes.SFX.clang:
+                tmp = clang;
+                break;
+            case EnumTypes.SFX.hitSound:
+                tmp = hitSound;
+                break;
+            case EnumTypes.SFX.playerDmg:
+                tmp = playerDmg;
+                break;
+            case EnumTypes.SFX.punch:
+                tmp = punch;
+                break;
+            case EnumTypes.SFX.punch_2:
+                tmp = punch_2;
+                break;
+            case EnumTypes.SFX.punch_3:
+                tmp = punch_3;
+                break;
+            case EnumTypes.SFX.schwoop:
+                tmp = schwoop;
+                break;
+            case EnumTypes.SFX.skeletonDmg:
+                tmp = skeletonDmg;
+                break;
+            case EnumTypes.SFX.tape:
+                tmp = tape;
+                break;
+            case EnumTypes.SFX.zombieDmg:
+                tmp = zombieDmg;
+                break;
+            default:
+                tmp = clang;
+                break;
+        }
+
+        SoundEffectsManager.instance.PlaySoundFXClip(tmp, transform, s_volume);
+    }
+
     // Let us know that someone died and we need to update data
     public void setDeadCheckFlag()
     {
@@ -187,7 +266,7 @@ public class TurnHandler : MonoBehaviour
     }
 
     // Make sure action and target side information are correct
-    public void HandleAttack(int attack)
+    public bool HandleAttack(int attack)
     {
         switch (attack)
         {
@@ -207,6 +286,7 @@ public class TurnHandler : MonoBehaviour
                 Debug.Log("You Should Not Be Here Bro");
                 break;
         }
+        return targetIsPlayer;
     }
 
     // Execute the selected action
@@ -281,7 +361,10 @@ public class TurnHandler : MonoBehaviour
         {
             for (int i = 0; i < 3; i++)
             {
-                playerBotArray[i].controller.AddTurnEnergy();
+                if (playerBotArray[i].controller.IsAlive())
+                {
+                    playerBotArray[i].controller.AddTurnEnergy();
+                }
             }
             state = State.WaitingAI;
         }
@@ -292,7 +375,10 @@ public class TurnHandler : MonoBehaviour
         Debug.Log("===END AI TURN===");
         for (int i = 0; i < 3; i++)
         {
-            aiBotArray[i].controller.AddTurnEnergy();
+            if (aiBotArray[i].controller.IsAlive())
+            {
+                aiBotArray[i].controller.AddTurnEnergy();
+            }
         }
         turnPointer = 0;
         state = State.WaitingPlayer;
@@ -306,23 +392,55 @@ public class TurnHandler : MonoBehaviour
     {
         if (playerLoss) {
             Debug.Log("Ending Round for Player Loss");
-            data.d_zone_one_ld.level_status_arr[data.d_zone_one_ld.level_index] = 3;
 
             //Save Game State
             SaveManager.SaveJsonData(PopulateSaveData());
 
-            SceneManager.LoadScene("ZoneOne");
+            switch (data.d_zone_index)
+            {
+                case 1:
+                    data.d_zone_one_ld.level_status_arr[data.d_zone_one_ld.level_index] = 3;
+                    //SceneManager.LoadScene("ZoneOne");
+                    break;
+                case 2:
+                    data.d_zone_two_ld.level_status_arr[data.d_zone_two_ld.level_index] = 3;
+                    //SceneManager.LoadScene("ZoneTwo");
+                    break;
+                case 3:
+                    data.d_zone_three_ld.level_status_arr[data.d_zone_three_ld.level_index] = 3;
+                    //SceneManager.LoadScene("ZoneThree");
+                    break;
+                default:
+                    break;
+            }
+            loseScreen.EnableMenu(data.d_zone_index);
         }
         else
         {
             findAdaptations();
-            data.d_zone_one_ld.level_status_arr[data.d_zone_one_ld.level_index] = 4;
+
+            switch (data.d_zone_index)
+            {
+                case 1:
+                    data.d_zone_one_ld.level_status_arr[data.d_zone_one_ld.level_index] = 4;
+                    break;
+                case 2:
+                    data.d_zone_two_ld.level_status_arr[data.d_zone_two_ld.level_index] = 4;
+                    break;
+                case 3:
+                    data.d_zone_three_ld.level_status_arr[data.d_zone_three_ld.level_index] = 4;
+                    break;
+                default:
+                    break;
+            }
+
             Debug.Log("Ending Round for AI Loss");
 
             //Save Game State
             SaveManager.SaveJsonData(PopulateSaveData());
 
-            SceneManager.LoadScene("AdaptationSelector");
+            winScreen.EnableMenu();
+            //SceneManager.LoadScene("AdaptationSelector");
         }
     }
 
@@ -532,7 +650,8 @@ public class TurnHandler : MonoBehaviour
             aiBotArray[i].isAlive = true;
             Debug.Log("Spawning AI " + i);
         }
-        HandleAdaptations();
+        HandleAdaptations(true);
+        HandleAdaptations(false);
         mainUI.InitializeButtons();
         state = State.WaitingPlayer;
     }
@@ -563,6 +682,12 @@ public class TurnHandler : MonoBehaviour
             case (CharType.B_Tank):
                 characterTransform = Instantiate(Boss_TankBot, position, Quaternion.identity);
                 break;
+            case (CharType.B_DPS):
+                characterTransform = Instantiate(Boss_DPSBot, position, Quaternion.identity);
+                break;
+            case (CharType.B_Basic):
+                characterTransform = Instantiate(Boss_BasicBot, position, Quaternion.identity);
+                break;
             default:
                 characterTransform = Instantiate(BaseDevBot, position, Quaternion.identity);
                 Debug.Log("WTF Am I Supposed to Spawn with This?");
@@ -575,17 +700,63 @@ public class TurnHandler : MonoBehaviour
     }
 
     //Loop through all bots and apply adaptations
-    private void HandleAdaptations()
+    private void HandleAdaptations(bool player)
     {
-        for (int j = 0; j < playerBotMax; j++)
+        if (player)
         {
-            Debug.Log("Adapting Bot: " + j);
+            for (int j = 0; j < playerBotMax; j++)
+            {
+                Debug.Log("Adapting Player Bot: " + j);
 
-            AdaptIncreasedRam(data.d_adaptations.increasedRAM, playerBotArray[j].controller);
-            AdaptBiggerHardDrives(data.d_adaptations.biggerHardDrives, playerBotArray[j].controller);
-            AdaptHotSpares(data.d_adaptations.hotSpares, playerBotArray[j].controller);
-            AdaptUpgradedFirewall(data.d_adaptations.upgradedFirewall, playerBotArray[j].controller);
-            AdaptEfficientRouting(data.d_adaptations.efficientRouting, playerBotArray[j].controller);
+                AdaptIncreasedRam(data.d_adaptations.increasedRAM, playerBotArray[j].controller);
+                AdaptBiggerHardDrives(data.d_adaptations.biggerHardDrives, playerBotArray[j].controller);
+                AdaptHotSpares(data.d_adaptations.hotSpares, playerBotArray[j].controller);
+                AdaptUpgradedFirewall(data.d_adaptations.upgradedFirewall, playerBotArray[j].controller);
+                AdaptEfficientRouting(data.d_adaptations.efficientRouting, playerBotArray[j].controller);
+            }
+        }
+        else
+        {
+            int ram = 0;
+            int hdd = 0;
+            int hsp = 0;
+            int fir = 0;
+            int rou = 0;
+
+            switch (data.d_zone_index)
+            {
+                case 1:
+                    ram = 0;
+                    hdd = 0;
+                    hsp = 0;
+                    fir = 0;
+                    rou = 0;
+                    break;
+                case 2:
+                    ram = 2;
+                    hdd = 2;
+                    hsp = 0;
+                    fir = 1;
+                    rou = 0;
+                    break;
+                case 3:
+                    ram = 3;
+                    hdd = 3;
+                    hsp = 0;
+                    fir = 2;
+                    rou = 1;
+                    break;
+            }
+            for (int i = 0; i < playerBotMax; i++)
+            {
+                Debug.Log("Adapting AI Bot: " + i);
+
+                AdaptIncreasedRam(ram, aiBotArray[i].controller);
+                AdaptBiggerHardDrives(hdd, aiBotArray[i].controller);
+                AdaptHotSpares(hsp, aiBotArray[i].controller);
+                AdaptUpgradedFirewall(fir, aiBotArray[i].controller);
+                AdaptEfficientRouting(rou, aiBotArray[i].controller);
+            }
         }
     }
 
@@ -594,7 +765,7 @@ public class TurnHandler : MonoBehaviour
         Debug.Log("AdaptIncreasedRam Loops: " + loops);
         for(int i = 0; i < loops; i++)
         {
-            bot.ChangeEnergyGainRate(2);
+            bot.ChangeEnergyGainRate(1);
         }
     }
 
@@ -648,7 +819,7 @@ public class TurnHandler : MonoBehaviour
         {
             HandleEndAiTurn();
         }
-        if (state == State.WaitingAI)
+        else if (state == State.WaitingAI)
         {
             if (!GetAiLock())
             {
@@ -669,6 +840,7 @@ public class TurnHandler : MonoBehaviour
                     deadCounter += 1;
                 }
             }
+            Debug.Log("New Dead, Dead Counter (AI) is at: " + deadCounter);
             if (deadCounter == 3)
             {
                 HandleEndRound(false);
@@ -679,7 +851,12 @@ public class TurnHandler : MonoBehaviour
             for (int j = 0; j < playerBotMax; j++)
             {
                 playerBotArray[j].isAlive = playerBotArray[j].controller.IsAlive();
+                if (!playerBotArray[j].isAlive)
+                {
+                    deadCounter += 1;
+                }                
             }
+            Debug.Log("New Dead, Dead Counter (PC) is at: " + deadCounter);
             if (deadCounter == 3)
             {
                 HandleEndRound(true);
@@ -725,6 +902,7 @@ public class TurnHandler : MonoBehaviour
 
     public BaseBotController GetTargetFromIndex(bool isPlayer, int i)
     {
+        Debug.Log("Getting Target Info on: " + i.ToString());
         if (isPlayer)
         {
             return playerBotArray[i].controller;
@@ -752,6 +930,7 @@ public class TurnHandler : MonoBehaviour
 
     private void BasicAITurn()
     {
+        Debug.Log("Turn For AI: " + turnPointer.ToString());
         if (aiBotArray[turnPointer].controller.IsAlive())
         {
             if (!aiBotArray[turnPointer].controller.ActionChooser(GetGameState(turnPointer)))

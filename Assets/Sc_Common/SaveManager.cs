@@ -45,9 +45,17 @@ public class SaveManager : MonoBehaviour
         //Level Info
         sd.d_zone_one_ld.level_index = 0;
         sd.d_zone_one_ld.level_status_arr = new int[10];
+        sd.d_zone_two_ld.level_status_arr = new int[10];
+        sd.d_zone_three_ld.level_status_arr = new int[10];
 
         sd.d_zone_one_ld.level_status_arr[1] = 1;
         sd.d_zone_one_ld.level_status_arr[5] = 1;
+
+        sd.d_zone_two_ld.level_status_arr[1] = 1;
+        sd.d_zone_two_ld.level_status_arr[5] = 1;
+
+        sd.d_zone_three_ld.level_status_arr[1] = 1;
+        sd.d_zone_three_ld.level_status_arr[5] = 1;
 
         sd.d_level_name = "";
 

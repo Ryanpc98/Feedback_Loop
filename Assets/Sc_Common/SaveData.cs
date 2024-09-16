@@ -36,6 +36,8 @@ public class SaveData
     public List<TurnHandler.CharType> d_roster = new List<TurnHandler.CharType>();
     public int d_zone_index;
     public LevelData d_zone_one_ld;
+    public LevelData d_zone_two_ld;
+    public LevelData d_zone_three_ld;
     public string d_level_name;
 
     public string ToJson()
