@@ -15,6 +15,9 @@ public class SaveData
         public int hotSpares;
         public int upgradedFirewall;
         public int efficientRouting;
+        public int highVoltage;
+        public int kernelAccess;
+        public int improvedCache;
 
     }
 

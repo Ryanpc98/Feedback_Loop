@@ -16,7 +16,7 @@ public class FloatingHealthBar : MonoBehaviour
     {
         if (currentValue <= 0)
         {
-            fillArea.color = Color.clear;
+            //fillArea.color = Color.clear;
         }
         else
         {

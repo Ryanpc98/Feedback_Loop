@@ -14,7 +14,13 @@ public class CharacterSelectController : MonoBehaviour
 
     public GameObject tooptipPanel;
 
+    [SerializeField] private GameObject[] infoBoxes;
+
+    [SerializeField] private TMP_Dropdown[] dropdowns;
+
     private List<TurnHandler.CharType> actors = new List<TurnHandler.CharType>();
+
+    private List<string> characterList = new List<string>();
 
     private SaveData data = new SaveData();
 
@@ -26,6 +32,9 @@ public class CharacterSelectController : MonoBehaviour
         }
 
         LoadFromSaveData(SaveManager.LoadJsonData());
+
+        PopulateChatacterList();
+        PopulateDDList();
 
         levelName.text = "Now Entering: " + data.d_level_name;
     }
@@ -88,75 +97,118 @@ public class CharacterSelectController : MonoBehaviour
         data.d_level_name = sd.d_level_name;
     }
 
+    private void UpdateActorList(int val, int i)
+    {
+        int picked_EntryIndex = dropdowns[i].value;
+
+        outputOne.text = dropdowns[i].options[picked_EntryIndex].text;
+
+        switch (dropdowns[i].options[picked_EntryIndex].text)
+        {
+            case ("Soldier"):
+                actors[i] = TurnHandler.CharType.Basic;
+                break;
+            case ("Pirate"):
+                actors[i] = TurnHandler.CharType.DPS;
+                break;
+            case ("Knight"):
+                actors[i] = TurnHandler.CharType.Tank;
+                break;
+            case ("Doctor"):
+                actors[i] = TurnHandler.CharType.Healer;
+                break;
+            case ("Ninja"):
+                actors[i] = TurnHandler.CharType.Ninja;
+                break;
+            case ("Gladiator"):
+                actors[i] = TurnHandler.CharType.Gladiator;
+                break;
+            case ("Shaman"):
+                actors[i] = TurnHandler.CharType.Shaman;
+                break;
+            case ("Cowboy"):
+                actors[i] = TurnHandler.CharType.Cowboy;
+                break;
+            case ("Viking"):
+                actors[i] = TurnHandler.CharType.Viking;
+                break;
+            case ("Cleric"):
+                actors[i] = TurnHandler.CharType.Cleric;
+                break;
+            default:
+                actors[i] = TurnHandler.CharType.Base;
+                break;
+        }
+    }
+
+    private void PopulateChatacterList()
+    {
+        characterList.Clear();
+
+        if (data.d_zone_index >= 0)
+        {
+            characterList.Add("Soldier");
+            if(data.d_zone_index >= 1)
+            {
+                characterList.Add("Pirate");
+                characterList.Add("Knight");
+                characterList.Add("Doctor");
+                if(data.d_zone_index >= 2)
+                {
+                    characterList.Add("Ninja");
+                    characterList.Add("Gladiator");
+                    characterList.Add("Shaman");
+                    if(data.d_zone_index >= 3)
+                    {
+                        characterList.Add("Cowboy");
+                        characterList.Add("Viking");
+                        characterList.Add("Cleric");
+                    }
+                }
+            }
+        }
+    }
+
+    private void PopulateDDList()
+    {
+        for (int i = 0; i < dropdowns.Length; i++)
+        {
+            for (int j = 0; j < characterList.Count; j++)
+            {
+                dropdowns[i].options.Add(new TMP_Dropdown.OptionData(characterList[j]));
+            }
+            dropdowns[i].RefreshShownValue();
+        }
+
+    }
+
     public void HandleInputDataOne(int val)
     {
-        if (val == 0)
-        {
-            actors[0] = TurnHandler.CharType.Basic;
-            outputOne.text = "Soldier";
-        }
-        if (val == 1)
-        {
-            actors[0] = TurnHandler.CharType.DPS;
-            outputOne.text = "Pirate";
-        }
-        if (val == 2)
-        {
-            actors[0] = TurnHandler.CharType.Tank;
-            outputOne.text = "Knight";
-        }
-        if (val == 3)
-        {
-            actors[0] = TurnHandler.CharType.Healer;
-            outputOne.text = "Doctor";
-        }
+        UpdateActorList(val, 0);
     }
 
     public void HandleInputDataTwo(int val)
     {
-        if (val == 0)
-        {
-            actors[1] = TurnHandler.CharType.Basic;
-            outputTwo.text = "Soldier";
-        }
-        if (val == 1)
-        {
-            actors[1] = TurnHandler.CharType.DPS;
-            outputTwo.text = "Pirate";
-        }
-        if (val == 2)
-        {
-            actors[1] = TurnHandler.CharType.Tank;
-            outputTwo.text = "Knight";
-        }
-        if (val == 3)
-        {
-            actors[1] = TurnHandler.CharType.Healer;
-            outputTwo.text = "Doctor";
-        }
+        UpdateActorList(val, 1);
     }
 
     public void HandleInputDataThree(int val)
     {
-        if (val == 0)
+        UpdateActorList(val, 2);
+    }
+
+    public void HandleInputDataInfo(int val)
+    {
+        for(int i = 0; i < infoBoxes.Length; i++)
         {
-            actors[2] = TurnHandler.CharType.Basic;
-            outputThree.text = "Soldier";
-        }
-        if (val == 1)
-        {
-            actors[2] = TurnHandler.CharType.DPS;
-            outputThree.text = "Pirate";
-        }
-        if (val == 2)
-        {
-            actors[2] = TurnHandler.CharType.Tank;
-            outputThree.text = "Knight";
-        }
-        if (val == 3)
-        {
-            actors[2] = TurnHandler.CharType.Healer;
-            outputThree.text = "Doctor";
+            if (i == val)
+            {
+                infoBoxes[i].SetActive(true);
+            }
+            else
+            {
+                infoBoxes[i].SetActive(false);
+            }
         }
     }
 

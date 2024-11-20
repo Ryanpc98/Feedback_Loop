@@ -150,7 +150,7 @@ public class ZoneOneNodeMapController : NodeMapController
         switch (node)
         {
             case "Node One":
-                return new List<TurnHandler.CharType>() { TurnHandler.CharType.DPS, TurnHandler.CharType.Basic, TurnHandler.CharType.Healer };
+                return new List<TurnHandler.CharType>() { TurnHandler.CharType.Basic, TurnHandler.CharType.Basic, TurnHandler.CharType.Basic };
             case "Node Two":
                 return new List<TurnHandler.CharType>() { TurnHandler.CharType.DPS, TurnHandler.CharType.Tank, TurnHandler.CharType.Tank };
             case "Node Three":

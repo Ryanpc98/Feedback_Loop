@@ -154,17 +154,17 @@ public class ZoneTwoNodeMapController : NodeMapController
             case "Node Two":
                 return new List<TurnHandler.CharType>() { TurnHandler.CharType.DPS, TurnHandler.CharType.Tank, TurnHandler.CharType.Tank };
             case "Node Three":
-                return new List<TurnHandler.CharType>() { TurnHandler.CharType.Tank, TurnHandler.CharType.DPS, TurnHandler.CharType.Healer };
+                return new List<TurnHandler.CharType>() { TurnHandler.CharType.Tank, TurnHandler.CharType.DPS, TurnHandler.CharType.Ninja };
             case "Node Four":
-                return new List<TurnHandler.CharType>() { TurnHandler.CharType.DPS, TurnHandler.CharType.Tank, TurnHandler.CharType.Healer };
+                return new List<TurnHandler.CharType>() { TurnHandler.CharType.Ninja, TurnHandler.CharType.Tank, TurnHandler.CharType.Healer };
             case "Node Five":
-                return new List<TurnHandler.CharType>() { TurnHandler.CharType.Basic, TurnHandler.CharType.Basic, TurnHandler.CharType.Healer };
+                return new List<TurnHandler.CharType>() { TurnHandler.CharType.Basic, TurnHandler.CharType.Basic, TurnHandler.CharType.Ninja };
             case "Node Six":
-                return new List<TurnHandler.CharType>() { TurnHandler.CharType.Basic, TurnHandler.CharType.Tank, TurnHandler.CharType.Tank };
+                return new List<TurnHandler.CharType>() { TurnHandler.CharType.Basic, TurnHandler.CharType.Ninja, TurnHandler.CharType.Tank };
             case "Node Seven":
-                return new List<TurnHandler.CharType>() { TurnHandler.CharType.DPS, TurnHandler.CharType.DPS, TurnHandler.CharType.Healer };
+                return new List<TurnHandler.CharType>() { TurnHandler.CharType.DPS, TurnHandler.CharType.DPS, TurnHandler.CharType.Ninja };
             case "Node Eight":
-                return new List<TurnHandler.CharType>() { TurnHandler.CharType.Tank, TurnHandler.CharType.Tank, TurnHandler.CharType.Healer };
+                return new List<TurnHandler.CharType>() { TurnHandler.CharType.Tank, TurnHandler.CharType.Ninja, TurnHandler.CharType.Healer };
             case "Node Nine":
                 return new List<TurnHandler.CharType>() { TurnHandler.CharType.DPS, TurnHandler.CharType.B_DPS, TurnHandler.CharType.Healer };
             default:

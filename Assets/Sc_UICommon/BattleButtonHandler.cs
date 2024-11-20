@@ -14,11 +14,13 @@ public class BattleButtonHandler : MonoBehaviour
     [SerializeField] private Button actorTwoButton;
     [SerializeField] private Button actorThreeButton;
 
-    [SerializeField] private Button enemyOneButton;
-    [SerializeField] private Button enemyTwoButton;
-    [SerializeField] private Button enemyThreeButton;
+    [SerializeField] private Button targetOneButton;
+    [SerializeField] private Button targetTwoButton;
+    [SerializeField] private Button targetThreeButton;
 
     [SerializeField] private Button executeButton;
+
+    [SerializeField] private Button endTurnButton;
 
     [SerializeField] private TextMeshProUGUI targetText;
 
@@ -27,39 +29,46 @@ public class BattleButtonHandler : MonoBehaviour
     private string[] actorText;
     private string[] enemyText;
 
+    private int action;
     private bool targetIsTeam;
 
     private bool[] pcAliveArray;
-    private bool[] aiAliveArray;
+    private bool[] targetAliveArray;
+
+    public void DisableUI()
+    {
+        actorOneButton.interactable = false;
+        actorTwoButton.interactable = false;
+        actorThreeButton.interactable = false;
+
+        targetOneButton.interactable = false;
+        targetTwoButton.interactable = false;
+        targetThreeButton.interactable = false;
+
+        actionOneButton.interactable = false;
+        actionTwoButton.interactable = false;
+        actionThreeButton.interactable = false;
+
+        executeButton.interactable = false;
+
+        endTurnButton.interactable = false;
+    }
+
+    public void RefreshUI()
+    {
+        ActorButtonUpdate(pcAliveArray);
+        ActionButtonUpdate();
+        TargetButtonUpdate(targetAliveArray);
+
+        executeButton.interactable = true;
+
+        endTurnButton.interactable = true;
+    }
 
     public void ActionButtonPressed(int i)
     {
-        targetIsTeam = handler.HandleAttack(i);
-
-        if (targetIsTeam)
-        {
-            targetText.text = "Allies";
-
-            enemyOneButton.GetComponentInChildren<TextMeshProUGUI>().text = actorText[0];
-            enemyTwoButton.GetComponentInChildren<TextMeshProUGUI>().text = actorText[1];
-            enemyThreeButton.GetComponentInChildren<TextMeshProUGUI>().text = actorText[2];
-
-            enemyOneButton.interactable = pcAliveArray[0];
-            enemyTwoButton.interactable = pcAliveArray[1];
-            enemyThreeButton.interactable = pcAliveArray[2];
-        }
-        else
-        {
-            targetText.text = "Enemies";
-
-            enemyOneButton.GetComponentInChildren<TextMeshProUGUI>().text = enemyText[0];
-            enemyTwoButton.GetComponentInChildren<TextMeshProUGUI>().text = enemyText[1];
-            enemyThreeButton.GetComponentInChildren<TextMeshProUGUI>().text = enemyText[2];
-
-            enemyOneButton.interactable = aiAliveArray[0];
-            enemyTwoButton.interactable = aiAliveArray[1];
-            enemyThreeButton.interactable = aiAliveArray[2];
-        }
+        action = i;
+        UpdateTargetSide();
 
         switch (i)
         {
@@ -83,10 +92,35 @@ public class BattleButtonHandler : MonoBehaviour
         }
     }
 
+    public void UpdateTargetSide()
+    {
+        targetIsTeam = handler.HandleAttack(action);
+
+        if (targetIsTeam)
+        {
+            targetText.text = "Allies";
+
+            targetOneButton.GetComponentInChildren<TextMeshProUGUI>().text = actorText[0];
+            targetTwoButton.GetComponentInChildren<TextMeshProUGUI>().text = actorText[1];
+            targetThreeButton.GetComponentInChildren<TextMeshProUGUI>().text = actorText[2];
+        }
+        else
+        {
+            targetText.text = "Enemies";
+
+            targetOneButton.GetComponentInChildren<TextMeshProUGUI>().text = enemyText[0];
+            targetTwoButton.GetComponentInChildren<TextMeshProUGUI>().text = enemyText[1];
+            targetThreeButton.GetComponentInChildren<TextMeshProUGUI>().text = enemyText[2];
+        }
+
+        TargetButtonUpdate(targetAliveArray);
+    }
+
     public void ActorButtonPressed(int i)
     {
         handler.HandleActorBotSelection(i);
         ActionButtonUpdate();
+        UpdateTargetSide();
 
         switch (i)
         {
@@ -112,24 +146,24 @@ public class BattleButtonHandler : MonoBehaviour
 
     public void EnemyButtonPressed(int i)
     {
-        handler.HandleEnemyBotSelection(i);
+        handler.HandleTargetBotSelection(i);
 
         switch (i)
         {
             case (0):
-                enemyOneButton.image.color = Color.green;
-                enemyTwoButton.image.color = Color.white;
-                enemyThreeButton.image.color = Color.white;
+                targetOneButton.image.color = Color.green;
+                targetTwoButton.image.color = Color.white;
+                targetThreeButton.image.color = Color.white;
                 break;
             case (1):
-                enemyOneButton.image.color = Color.white;
-                enemyTwoButton.image.color = Color.green;
-                enemyThreeButton.image.color = Color.white;
+                targetOneButton.image.color = Color.white;
+                targetTwoButton.image.color = Color.green;
+                targetThreeButton.image.color = Color.white;
                 break;
             case (2):
-                enemyOneButton.image.color = Color.white;
-                enemyTwoButton.image.color = Color.white;
-                enemyThreeButton.image.color = Color.green;
+                targetOneButton.image.color = Color.white;
+                targetTwoButton.image.color = Color.white;
+                targetThreeButton.image.color = Color.green;
                 break;
             default:
                 break;
@@ -162,15 +196,15 @@ public class BattleButtonHandler : MonoBehaviour
         enemyText = handler.UpdateEnemyButtons();
 
         pcAliveArray = new bool[] { true, true, true };
-        aiAliveArray = new bool[] { true, true, true };
+        targetAliveArray = new bool[] { true, true, true };
 
         actorOneButton.GetComponentInChildren<TextMeshProUGUI>().text = actorText[0];
         actorTwoButton.GetComponentInChildren<TextMeshProUGUI>().text = actorText[1];
         actorThreeButton.GetComponentInChildren<TextMeshProUGUI>().text = actorText[2];
 
-        enemyOneButton.GetComponentInChildren<TextMeshProUGUI>().text = enemyText[0];
-        enemyTwoButton.GetComponentInChildren<TextMeshProUGUI>().text = enemyText[1];
-        enemyThreeButton.GetComponentInChildren<TextMeshProUGUI>().text = enemyText[2];
+        targetOneButton.GetComponentInChildren<TextMeshProUGUI>().text = enemyText[0];
+        targetTwoButton.GetComponentInChildren<TextMeshProUGUI>().text = enemyText[1];
+        targetThreeButton.GetComponentInChildren<TextMeshProUGUI>().text = enemyText[2];
 
         ActionButtonUpdate();
     }
@@ -179,8 +213,6 @@ public class BattleButtonHandler : MonoBehaviour
     {
         string[] actionText = handler.UpdateActionButtons();
         bool[] en = handler.UpdateActionButtonEnablement();
-
-        targetText.text = "Enemies";
 
         actionOneButton.GetComponentInChildren<TextMeshProUGUI>().text = actionText[0];
         actionTwoButton.GetComponentInChildren<TextMeshProUGUI>().text = actionText[1];
@@ -198,25 +230,15 @@ public class BattleButtonHandler : MonoBehaviour
         actorOneButton.interactable = en[0];
         actorTwoButton.interactable = en[1];
         actorThreeButton.interactable = en[2];
-
-        if (targetIsTeam)
-        {
-            enemyOneButton.interactable = en[0];
-            enemyTwoButton.interactable = en[1];
-            enemyThreeButton.interactable = en[2];
-        }
     }
 
-    public void EnemyButtonUpdate(bool[] en)
+    public void TargetButtonUpdate(bool[] en)
     {
-        aiAliveArray = en;
+        targetAliveArray = en;
 
-        if (!targetIsTeam)
-        {
-            enemyOneButton.interactable = en[0];
-            enemyTwoButton.interactable = en[1];
-            enemyThreeButton.interactable = en[2];
-        }
+        targetOneButton.interactable = en[0];
+        targetTwoButton.interactable = en[1];
+        targetThreeButton.interactable = en[2];
     }
 
     public void OpenTooltip()

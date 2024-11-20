@@ -14,10 +14,18 @@ public class TurnHandler : MonoBehaviour
     //Character Prefabs
     [SerializeField] private Transform BaseDevBot;
     [SerializeField] private Transform TestDevBot;
+
     [SerializeField] private Transform PC_BasicBot;
     [SerializeField] private Transform PC_DPSBot;
     [SerializeField] private Transform PC_TankBot;
     [SerializeField] private Transform PC_HealerBot;
+    [SerializeField] private Transform PC_NinjaBot;
+    [SerializeField] private Transform PC_GladiatorBot;
+    [SerializeField] private Transform PC_ShamanBot;
+    [SerializeField] private Transform PC_CowboyBot;
+    [SerializeField] private Transform PC_VikingBot;
+    [SerializeField] private Transform PC_ClericBot;
+
     [SerializeField] private Transform Boss_TankBot;
     [SerializeField] private Transform Boss_DPSBot;
     [SerializeField] private Transform Boss_BasicBot;
@@ -48,11 +56,11 @@ public class TurnHandler : MonoBehaviour
 
     //Spawn Points
     private static Vector3 playerPos1 = new Vector3(-5.2f, 3f, 1);
-    private static Vector3 playerPos2 = new Vector3(-3.7f, 1f, 1);
+    private static Vector3 playerPos2 = new Vector3(-3.4f, 1f, 1);
     private static Vector3 playerPos3 = new Vector3(-5.2f, -1f, 1);
 
     private static Vector3 AiPos1 = new Vector3(+5.2f, 3f, 1);
-    private static Vector3 AiPos2 = new Vector3(+3.7f, 1f, 1);
+    private static Vector3 AiPos2 = new Vector3(+3.4f, 1f, 1);
     private static Vector3 AiPos3 = new Vector3(+5.2f, -1f, 1);
 
     private static Vector3[] playerPosArray = { playerPos1, playerPos2, playerPos3 };
@@ -112,6 +120,12 @@ public class TurnHandler : MonoBehaviour
         DPS,
         Healer,
         Tank,
+        Ninja,
+        Gladiator,
+        Shaman,
+        Cowboy,
+        Viking,
+        Cleric,
         B_Tank,
         B_DPS,
         B_Basic
@@ -294,37 +308,47 @@ public class TurnHandler : MonoBehaviour
                 Debug.Log("You Should Not Be Here Bro");
                 break;
         }
+        UpdateTargetButtonEnablement();
         return targetIsPlayer;
     }
 
     // Execute the selected action
     public void ExecuteAction()
     {
+        Debug.Log("Executing Action");
         BaseBotController targetController;
         if (targetIsPlayer)
         {
+            Debug.Log("Target is Player");
             targetController = playerBotArray[target].controller;
         }
         else
         {
+            Debug.Log("Target is NOT Player");
             targetController = aiBotArray[target].controller;
         }
-        switch (action)
+        Debug.Log("Actor " + actor.ToString() + " attemping to execute action: " + action.ToString() + " on target " + target.ToString());
+        if (playerBotArray[actor].controller.IsValidTarget(action, targetController))
         {
-            case 1:
-                playerBotArray[actor].controller.ActionOneCallback(targetController);
-                break;
-            case 2:
-                playerBotArray[actor].controller.ActionTwoCallback(targetController);
-                break;
-            case 3:
-                playerBotArray[actor].controller.ActionThreeCallback(targetController);
-                break;
-            default:
-                Debug.Log("You Should Not Be Here Bro");
-                break;
+            Debug.Log("executed");
+            switch (action)
+            {
+                case 1:
+                    playerBotArray[actor].controller.ActionOneCallback(targetController);
+                    break;
+                case 2:
+                    playerBotArray[actor].controller.ActionTwoCallback(targetController);
+                    break;
+                case 3:
+                    playerBotArray[actor].controller.ActionThreeCallback(targetController);
+                    break;
+                default:
+                    Debug.Log("You Should Not Be Here Bro");
+                    break;
+            }
+            Debug.Log("executed");
+            mainUI.ActionButtonUpdate();
         }
-        mainUI.ActionButtonUpdate();
     }
 
     //AoE Damage Helper
@@ -347,17 +371,96 @@ public class TurnHandler : MonoBehaviour
         return false;
     }
 
-    /*======Button Handlers======*/  
+    public bool DealAoeHealing(bool isPlayer, float hp)
+    {
+        if (isPlayer)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                aiBotArray[i].controller.ApplyHealing(hp);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                playerBotArray[i].controller.ApplyHealing(hp);
+            }
+        }
+        return false;
+    }
+
+    public void HandleTaunt(bool isPlayer, bool flag)
+    {
+        {
+            if (isPlayer)
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    if (!aiBotArray[i].controller.IsTaunting())
+                    {
+                        aiBotArray[i].controller.SetTargetable(!flag);
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    if (!playerBotArray[i].controller.IsTaunting())
+                    {
+                        playerBotArray[i].controller.SetTargetable(!flag);
+                    }
+                }
+            }
+        }
+    }
+
+    /*======Button Handlers======*/
     //Set actor from button press
     public void HandleActorBotSelection(int i)
     {
         actor = i;
+
+        switch (action)
+        {
+            case 1:
+                action = 1;
+                targetIsPlayer = playerBotArray[actor].controller.ActionOneSide();
+                break;
+            case 2:
+                action = 2;
+                targetIsPlayer = playerBotArray[actor].controller.ActionTwoSide();
+                break;
+            case 3:
+                action = 3;
+                targetIsPlayer = playerBotArray[actor].controller.ActionThreeSide();
+                break;
+            default:
+                Debug.Log("You Should Not Be Here Bro");
+                break;
+        }
+        UpdateTargetButtonEnablement();
     }
-    
+
     //Set target from button NOTE: could be enemy or friendly
-    public void HandleEnemyBotSelection(int i)
+    public void HandleTargetBotSelection(int i)
     {
-        target = i;
+        if (targetIsPlayer)
+        {
+            if (playerBotArray[actor].controller.IsValidTarget(action, playerBotArray[i].controller))
+            {
+                target = i;
+            }
+        }
+        else
+        {
+            if (playerBotArray[actor].controller.IsValidTarget(action, aiBotArray[i].controller))
+            {
+                target = i;
+            }
+        }
+
     }
 
     /*======Turn Transition Handlers======*/
@@ -374,6 +477,7 @@ public class TurnHandler : MonoBehaviour
                     playerBotArray[i].controller.AddTurnEnergy();
                 }
             }
+            mainUI.DisableUI();
             state = State.WaitingAI;
         }
     }
@@ -389,6 +493,8 @@ public class TurnHandler : MonoBehaviour
             }
         }
         turnPointer = 0;
+        UpdateTargetButtonEnablement();
+        mainUI.RefreshUI();
         state = State.WaitingPlayer;
         turnCounter += 1;
         turnCounterText.text = "Turn: " + turnCounter.ToString();
@@ -508,13 +614,13 @@ public class TurnHandler : MonoBehaviour
         switch (action)
         {
             case 1:
-                cost = playerBotArray[actor].controller.getActionCost(1);
+                cost = playerBotArray[actor].controller.GetActionCost(1);
                 break;
             case 2:
-                cost = playerBotArray[actor].controller.getActionCost(2);
+                cost = playerBotArray[actor].controller.GetActionCost(2);
                 break;
             case 3:
-                cost = playerBotArray[actor].controller.getActionCost(3);
+                cost = playerBotArray[actor].controller.GetActionCost(3);
                 break;
             default:
                 cost = 0;
@@ -627,14 +733,27 @@ public class TurnHandler : MonoBehaviour
         mainUI.ActorButtonUpdate(en);
     }
 
-    public void UpdateEnemyButtonEnablement()
+    public void UpdateTargetButtonEnablement()
     {
         bool[] en = { true, true, true };
-        en[0] = aiBotArray[0].controller.IsAlive();
-        en[1] = aiBotArray[1].controller.IsAlive();
-        en[2] = aiBotArray[2].controller.IsAlive();
 
-        mainUI.EnemyButtonUpdate(en);
+        if (targetIsPlayer)
+        {
+            for (int i = 0; i < playerBotMax; i++)
+            {
+                en[i] = playerBotArray[actor].controller.IsValidTarget(action, playerBotArray[i].controller);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < aiBotMax; i++)
+            {
+                en[i] = playerBotArray[actor].controller.IsValidTarget(action, aiBotArray[i].controller);
+            }
+        }
+
+
+        mainUI.TargetButtonUpdate(en);
     }
 
     /*======Spawning Logic======*/
@@ -644,7 +763,7 @@ public class TurnHandler : MonoBehaviour
         for (int i = 0; i < 3; i++)
         {
             playerBotArray[i].type = data.d_roster[i];
-            playerBotArray[i].controller = SpawnCharacter(true, playerBotArray[i].type, playerPosArray[i]);
+            playerBotArray[i].controller = SpawnCharacter(true, playerBotArray[i].type, playerPosArray[i], i);
             playerBotArray[i].isPlayerTeam = true;
             playerBotArray[i].isAlive = true;
             Debug.Log("Spawning PC " + i);
@@ -653,7 +772,7 @@ public class TurnHandler : MonoBehaviour
         for (int i = 0; i < 3; i++)
         {
             aiBotArray[i].type = s_aiRoster[i];
-            aiBotArray[i].controller = SpawnCharacter(false, aiBotArray[i].type, AiPosArray[i]);
+            aiBotArray[i].controller = SpawnCharacter(false, aiBotArray[i].type, AiPosArray[i], i + 3);
             aiBotArray[i].isPlayerTeam = false;
             aiBotArray[i].isAlive = true;
             Debug.Log("Spawning AI " + i);
@@ -664,9 +783,10 @@ public class TurnHandler : MonoBehaviour
         state = State.WaitingPlayer;
     }
 
-    private BaseBotController SpawnCharacter(bool isPlayerTeam, CharType charToSpawn, Vector3 position)
+    private BaseBotController SpawnCharacter(bool isPlayerTeam, CharType charToSpawn, Vector3 position, int index)
     {
         Transform characterTransform;
+        // Yeah, this is a big switch statement. What about it?
         switch (charToSpawn)
         {
             case (CharType.Test):
@@ -687,6 +807,24 @@ public class TurnHandler : MonoBehaviour
             case (CharType.Tank):
                 characterTransform = Instantiate(PC_TankBot, position, Quaternion.identity);
                 break;
+            case (CharType.Ninja):
+                characterTransform = Instantiate(PC_NinjaBot, position, Quaternion.identity);
+                break;
+            case (CharType.Gladiator):
+                characterTransform = Instantiate(PC_GladiatorBot, position, Quaternion.identity);
+                break;
+            case (CharType.Shaman):
+                characterTransform = Instantiate(PC_ShamanBot, position, Quaternion.identity);
+                break;
+            case (CharType.Cowboy):
+                characterTransform = Instantiate(PC_CowboyBot, position, Quaternion.identity);
+                break;
+            case (CharType.Viking):
+                characterTransform = Instantiate(PC_VikingBot, position, Quaternion.identity);
+                break;
+            case (CharType.Cleric):
+                characterTransform = Instantiate(PC_ClericBot, position, Quaternion.identity);
+                break;
             case (CharType.B_Tank):
                 characterTransform = Instantiate(Boss_TankBot, position, Quaternion.identity);
                 break;
@@ -702,7 +840,7 @@ public class TurnHandler : MonoBehaviour
                 break;
         }
         BaseBotController spawned = characterTransform.GetComponent<BaseBotController>();
-        spawned.Setup(isPlayerTeam, instance);
+        spawned.Setup(isPlayerTeam, instance, index);
 
         return spawned;
     }
@@ -773,7 +911,7 @@ public class TurnHandler : MonoBehaviour
         Debug.Log("AdaptIncreasedRam Loops: " + loops);
         for(int i = 0; i < loops; i++)
         {
-            bot.ChangeEnergyGainRate(1);
+            bot.ChangeEnergyGainRate(10);
         }
     }
 
@@ -782,7 +920,7 @@ public class TurnHandler : MonoBehaviour
         Debug.Log("AdaptBiggerHardDrives Loops: " + loops);
         for (int i = 0; i < loops; i++)
         {
-            bot.ChangeMaxEnergy(5);
+            bot.ChangeMaxEnergy(50);
         }
     }
 
@@ -795,7 +933,7 @@ public class TurnHandler : MonoBehaviour
             {
                 if (bot.GetActionType(j) == BaseBotController.ActionType.Heal)
                 {
-                    bot.ChangeDamage(j, 0.20f);
+                    bot.ChangeDamageMult(j, 0.20f);
                 }
             }
 
@@ -816,14 +954,14 @@ public class TurnHandler : MonoBehaviour
         Debug.Log("AdaptEfficientRouting Loops: " + loops);
         for (int i = 0; i < loops; i++)
         {
-            bot.ChangeAllActionCosts(-1);
+            bot.ChangeAllActionCosts(-10);
         }
     }
 
     /*======AI Controller======*/
     private void Update()
     {
-        if (turnPointer >= aiBotMax)
+        if (turnPointer >= (aiBotMax * 2))
         {
             HandleEndAiTurn();
         }
@@ -845,6 +983,10 @@ public class TurnHandler : MonoBehaviour
                 aiBotArray[i].isAlive = aiBotArray[i].controller.IsAlive();
                 if (!aiBotArray[i].isAlive)
                 {
+                    if (aiBotArray[i].controller.IsTaunting())
+                    {
+                        aiBotArray[i].controller.ClearTaunting();
+                    }
                     deadCounter += 1;
                 }
             }
@@ -861,6 +1003,10 @@ public class TurnHandler : MonoBehaviour
                 playerBotArray[j].isAlive = playerBotArray[j].controller.IsAlive();
                 if (!playerBotArray[j].isAlive)
                 {
+                    if (playerBotArray[j].controller.IsTaunting())
+                    {
+                        playerBotArray[j].controller.ClearTaunting();
+                    }
                     deadCounter += 1;
                 }                
             }
@@ -871,41 +1017,10 @@ public class TurnHandler : MonoBehaviour
             }
 
             UpdateActorButtonEnablement();
-            UpdateEnemyButtonEnablement();
+            UpdateTargetButtonEnablement();
 
             deadCheckFlag = false;
         }
-    }
-
-    private EnumTypes.GameStateInfo GetGameState(int self)
-    {
-        EnumTypes.GameStateInfo gameState;
-        gameState.turnCounter = turnCounter;
-        gameState.selfIndex = self;
-        gameState.aiBots = aiBotMax;
-        gameState.pcBots = playerBotMax;
-        gameState.aiHPArray = new float[aiBotMax];
-        gameState.pcHPArray = new float[playerBotMax];
-        gameState.aiHPArrayPct = new float[aiBotMax];
-        gameState.pcHPArrayPct = new float[playerBotMax];
-        gameState.aiEnergyArrayPct = new float[aiBotMax];
-        gameState.pcEnergyArrayPct = new float[playerBotMax];
-
-        for (int i = 0; i < aiBotMax; i++)
-        {
-            gameState.aiHPArray[i] = aiBotArray[i].controller.GetHealth();
-            gameState.aiHPArrayPct[i] = aiBotArray[i].controller.GetHealthAsPct();
-            gameState.aiEnergyArrayPct[i] = aiBotArray[i].controller.GetEnergyAsPct();
-        }
-
-        for (int j = 0; j < playerBotMax; j++)
-        {
-            gameState.pcHPArray[j] = playerBotArray[j].controller.GetHealth();
-            gameState.pcHPArrayPct[j] = playerBotArray[j].controller.GetHealthAsPct();
-            gameState.pcEnergyArrayPct[j] = playerBotArray[j].controller.GetEnergyAsPct();
-        }
-
-        return gameState;
     }
 
     public BaseBotController GetTargetFromIndex(bool isPlayer, int i)
@@ -938,18 +1053,19 @@ public class TurnHandler : MonoBehaviour
 
     private void BasicAITurn()
     {
-        Debug.Log("Turn For AI: " + turnPointer.ToString());
-        if (aiBotArray[turnPointer].controller.IsAlive())
+        Debug.Log("Turn For AI: " + (turnPointer % aiBotMax).ToString() + " (" + turnPointer.ToString() + ")");
+        if (aiBotArray[turnPointer % aiBotMax].controller.IsAlive())
         {
-            if (!aiBotArray[turnPointer].controller.ActionChooser(GetGameState(turnPointer)))
+            if (!aiBotArray[turnPointer % aiBotMax].controller.ActionChooser(aiBotArray, playerBotArray, turnPointer % aiBotMax))
             {
+                ReleaseAiLock();
                 turnPointer += 1;
             }
         }
         else
         {
-            turnPointer += 1;
             ReleaseAiLock();
+            turnPointer += 1;
         }
         state = State.WaitingAI;
     }
